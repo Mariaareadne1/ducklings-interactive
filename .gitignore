@@ -1,0 +1,12 @@
+node_modules
+dist
+test-results
+playwright-report
+*.tsbuildinfo
+.DS_Store
+.vercel
+artifacts/
+# reference photos are inspiration only — usage rights not established
+references/*
+!references/README.md
+.env*
