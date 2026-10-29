@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { LIGHTING_GLSL, NOISE_GLSL, WORLD_UNIFORMS_GLSL } from './shaderChunks';
 import { GROUND_GLSL } from './terrain';
 import { MAX_BLOOMS, MAX_RIPPLES, type WorldUniforms } from './world';
-import { WATER_Y } from './pondShape';
+import { LOBE_A, LOBE_B, TILE, WATER_Y } from './park';
 
 /**
  * The water's surface, painted over the pond bed the way a watercolourist
@@ -93,9 +93,9 @@ void main() {
     float age = uTime - r.z;
     if (age < 0.0 || age > 3.2 || r.w <= 0.0) continue;
     float life = 1.0 - age / 3.2;
-    float rad = 0.12 + age * (0.55 + 0.25 * r.w);
+    float rad = 0.06 + age * (0.32 + 0.16 * r.w);
     float d = length(xz - r.xy) - rad;
-    float w = 0.025 + age * 0.022;
+    float w = 0.016 + age * 0.014;
     float k = r.w * life * life;
     crest += exp(-pow((d - w * 0.6) / w, 2.0)) * k;
     trough += exp(-pow((d + w * 0.9) / w, 2.0)) * k * 0.7;
@@ -117,9 +117,9 @@ void main() {
 `;
 
 export function createWater(world: WorldUniforms): THREE.Mesh {
-  const geo = new THREE.PlaneGeometry(26, 18, 1, 1);
+  const geo = new THREE.PlaneGeometry(TILE.halfX * 2, (LOBE_A.rz + 1) * 2 + Math.abs(LOBE_A.z - LOBE_B.z) + 1, 1, 1);
   geo.rotateX(-Math.PI / 2);
-  geo.translate(0.6, WATER_Y, -0.3);
+  geo.translate(0, WATER_Y, (LOBE_A.z + LOBE_B.z) / 2);
   const material = new THREE.ShaderMaterial({
     uniforms: world,
     vertexShader: vertex,

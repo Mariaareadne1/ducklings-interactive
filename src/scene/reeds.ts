@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { groundHeight, onJetty, pondSDF, edgeDistance } from './pondShape';
+import { edgeDistance, gentleness, groundHeight, onBridge, pathDistance, pondSDF } from './park';
 import { fbm2, seededRandom } from './noise';
 import { LIGHTING_GLSL, NOISE_GLSL, WORLD_UNIFORMS_GLSL } from './shaderChunks';
 import { PROP_SHADOW_LAYER } from './props';
@@ -140,17 +140,17 @@ function clumps(seed: number): Clump[] {
   const rand = seededRandom(seed);
   const out: Clump[] = [];
   let attempts = 0;
-  while (out.length < 46 && attempts < 4000) {
+  while (out.length < 26 && attempts < 4000) {
     attempts++;
-    const x = (rand() * 2 - 1) * 13;
-    const z = (rand() * 2 - 1) * 9.6;
+    const x = (rand() * 2 - 1) * 9.4;
+    const z = (rand() * 2 - 1) * 7.0;
     const s = pondSDF(x, z);
-    if (s < -0.7 || s > 0.8 || edgeDistance(x, z) < 1.1 || onJetty(x, z, 1.2)) continue;
-    // reeds gather on the far and left shores, thinner along the near bank where we look in
-    const favour = 0.45 + 0.55 * Math.max(0, fbm2(x / 5 + 3, z / 5 - 1, 2) + 0.2) + (z < 2 ? 0.3 : -0.1);
+    // along the steep edge only: the gentle bank stays open for the ducks, the bridge and path stay clear
+    if (s < -0.5 || s > 0.45 || edgeDistance(x, z) < 0.8 || gentleness(x, z) > 0.05 || onBridge(x, z, 0.9) || pathDistance(x, z) < 0.9) continue;
+    const favour = 0.5 + 0.5 * Math.max(0, fbm2(x / 4 + 3, z / 4 - 1, 2) + 0.2) + (z < -2 ? 0.25 : -0.2);
     if (rand() > favour) continue;
-    if (out.some((c) => Math.hypot(c.x - x, c.z - z) < 1.1)) continue;
-    out.push({ x, z, n: 10 + Math.floor(rand() * 16), cattails: rand() < 0.55 ? 1 + Math.floor(rand() * 3) : 0 });
+    if (out.some((c) => Math.hypot(c.x - x, c.z - z) < 1.0)) continue;
+    out.push({ x, z, n: 8 + Math.floor(rand() * 12), cattails: rand() < 0.5 ? 1 + Math.floor(rand() * 2) : 0 });
   }
   return out;
 }
@@ -169,25 +169,25 @@ export function createReeds(world: WorldUniforms, density = 1): THREE.Group {
     const n = Math.round(c.n * density);
     for (let i = 0; i < n; i++) {
       const a = rand() * Math.PI * 2;
-      const r = Math.sqrt(rand()) * 0.55;
+      const r = Math.sqrt(rand()) * 0.42;
       const x = c.x + Math.cos(a) * r;
       const z = c.z + Math.sin(a) * r;
       const y = groundHeight(x, z) - 0.02;
-      const height = 0.9 + rand() * 0.9 + (r < 0.25 ? 0.3 : 0);
-      blades.push([x, y, z, rand() * Math.PI * 2, height, (rand() - 0.3) * 0.35, 0.03 + rand() * 0.015, rand()]);
+      const height = 0.55 + rand() * 0.55 + (r < 0.2 ? 0.2 : 0);
+      blades.push([x, y, z, rand() * Math.PI * 2, height, (rand() - 0.3) * 0.35, 0.022 + rand() * 0.01, rand()]);
     }
     for (let i = 0; i < c.cattails; i++) {
       const a = rand() * Math.PI * 2;
-      const r = rand() * 0.35;
+      const r = rand() * 0.28;
       const x = c.x + Math.cos(a) * r;
       const z = c.z + Math.sin(a) * r;
       const y = groundHeight(x, z) - 0.02;
-      const height = 1.7 + rand() * 0.6;
+      const height = 1.1 + rand() * 0.35;
       const yaw = rand() * Math.PI * 2;
       const curl = 0.06 + rand() * 0.06;
       // the stalk is a thin blade; its head rides on top with the same sway
       blades.push([x, y, z, yaw, height, curl, 0.012, rand()]);
-      heads.push([x, y, z, height, curl, yaw, 0.9 + rand() * 0.3, rand()]);
+      heads.push([x, y, z, height, curl, yaw, 0.65 + rand() * 0.2, rand()]);
     }
   }
 

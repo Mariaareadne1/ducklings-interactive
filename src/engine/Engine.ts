@@ -8,8 +8,7 @@ import { createWater, Ripples } from '../scene/water';
 import { createCamera, frameCamera } from '../scene/camera';
 import { PostPass } from './post';
 import { SunShadows } from './shadows';
-import { PondLife } from '../scene/life';
-import { PondManager } from '../creatures/PondManager';
+import { ParkLife } from '../scene/life';
 
 export interface EngineOptions {
   canvas: HTMLCanvasElement;
@@ -26,8 +25,7 @@ export class Engine {
   readonly post: PostPass;
   readonly shadows: SunShadows;
   readonly ripples: Ripples;
-  readonly life: PondLife;
-  readonly pond: PondManager;
+  readonly life: ParkLife;
   private readonly clock = new THREE.Clock();
   private readonly frameListeners = new Set<FrameListener>();
   private readonly beforeRender = new Set<FrameListener>();
@@ -86,14 +84,9 @@ export class Engine {
     this.scene.add(createReeds(this.world, quality === 'high' ? 1 : 0.6));
     this.scene.add(createWater(this.world));
     this.ripples = new Ripples(this.world);
-    this.life = new PondLife(this.world, this.ripples, quality === 'high' ? 1 : 0.6);
+    this.life = new ParkLife(this.world, this.ripples, quality === 'high' ? 1 : 0.6);
     this.scene.add(this.life.group);
-    this.pond = new PondManager(this.world, this.camera, this.ripples, this.life);
-    this.scene.add(this.pond.group);
-    this.onFrame((dt) => {
-      this.pond.update(dt);
-      this.life.update(dt);
-    });
+    this.onFrame((dt) => this.life.update(dt));
     this.shadows = new SunShadows(this.world, quality === 'high' ? 2048 : 1024);
   }
 
@@ -129,7 +122,6 @@ export class Engine {
     this.renderer.setPixelRatio(this.pixelRatio);
     this.renderer.setSize(width, height, false);
     frameCamera(this.camera, width, height);
-    this.pond.viewportHeight = height;
     this.post.setSize(Math.round(width * this.pixelRatio), Math.round(height * this.pixelRatio));
   }
 
@@ -237,7 +229,6 @@ export class Engine {
       if (Array.isArray(mat)) mat.forEach((m) => m.dispose());
       else mat?.dispose();
     });
-    this.pond.dispose();
     this.life.dispose();
     this.shadows.dispose();
     this.post.dispose();

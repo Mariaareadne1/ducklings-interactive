@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { PROP_SHADOW_LAYER as SHADOW_LAYER } from '../scene/props';
-import { TILE } from '../scene/pondShape';
+import { TILE } from '../scene/park';
 import type { WorldUniforms } from '../scene/world';
 
 /**
@@ -45,7 +45,7 @@ export class SunShadows {
     this.camera.updateMatrixWorld(true);
     const inv = this.camera.matrixWorldInverse;
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, minZ = Infinity, maxZ = -Infinity;
-    for (const x of [-TILE.halfX, TILE.halfX]) for (const z of [-TILE.halfZ, TILE.halfZ]) for (const y of [-1.6, 9]) {
+    for (const x of [-TILE.halfX, TILE.halfX]) for (const z of [-TILE.halfZ, TILE.halfZ]) for (const y of [-1.3, 6]) {
       this.lightSpace.set(x, y, z).applyMatrix4(inv);
       minX = Math.min(minX, this.lightSpace.x);
       maxX = Math.max(maxX, this.lightSpace.x);

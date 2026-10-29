@@ -7,10 +7,10 @@ console.log('load average', loadavg().map((l) => l.toFixed(2)).join(' '));
 const browser = await chromium.launch({ args: ['--use-angle=metal', '--enable-gpu'] });
 for (const [w, h, n] of [[1440, 900, 0], [1440, 900, 15], [1920, 1080, 15]]) {
   const page = await browser.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: Number(process.env.DPR ?? 1) });
-  await page.goto('http://localhost:5366/?showcase');
-  await page.waitForFunction(() => window.__pond && !window.__pond.store.get().loading, null, { timeout: 90000 });
+  await page.goto('http://localhost:5392/?showcase');
+  await page.waitForFunction(() => window.__ducks && !window.__ducks.store.get().loading, null, { timeout: 90000 });
   const ms = await page.evaluate(async (n) => {
-    const p = window.__pond;
+    const p = window.__ducks;
     if (n === 0) p.app.loadDoc({ version: 1, creatures: [] });
     else for (const id of ['koi1', 'duck1', 'frog2']) p.app.duplicate(id);
     await new Promise((r) => setTimeout(r, 1500));

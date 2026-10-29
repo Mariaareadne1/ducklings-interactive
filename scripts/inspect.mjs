@@ -9,20 +9,20 @@ const browser = await chromium.launch({ args: ['--use-angle=metal', '--enable-gp
 const page = await browser.newPage({ viewport: { width: 900, height: 700 }, deviceScaleFactor: 1 });
 page.on('pageerror', (e) => console.log('[pageerror]', e.message));
 page.on('console', (m) => m.type() === 'error' && console.log('[console]', m.text()));
-await page.goto(`${process.env.POND_URL ?? 'http://localhost:5366/'}?${process.env.POND_QUERY ?? 'showcase'}`);
-await page.waitForFunction(() => window.__pond && !window.__pond.store.get().loading, null, { timeout: 90000 });
+await page.goto(`${process.env.DUCKS_URL ?? 'http://localhost:5392/'}?${process.env.POND_QUERY ?? 'showcase'}`);
+await page.waitForFunction(() => window.__ducks && !window.__ducks.store.get().loading, null, { timeout: 90000 });
 await page.evaluate(() => {
-  const p = window.__pond;
+  const p = window.__ducks;
   p.store.set({ uiHidden: true });
   p.views = Object.fromEntries(p.engine.pond.ids().map((id) => [id, p.engine.pond.get(id).view]));
 });
 await page.waitForTimeout(800);
 await page.screenshot({ path: `artifacts/${prefix}-scene.png` });
-const names = only.length ? only : await page.evaluate(() => Object.keys(window.__pond.views));
+const names = only.length ? only : await page.evaluate(() => Object.keys(window.__ducks.views));
 for (const name of names) {
   for (const [label, az, el, dist] of [['front', 0.6, 0.35, 2.6], ['side', 1.9, 0.5, 2.6], ['top', 0.3, 1.25, 2.4], ['back', 3.6, 0.45, 2.6]]) {
     await page.evaluate(({ name, az, el, dist }) => {
-      const { engine, views } = window.__pond;
+      const { engine, views } = window.__ducks;
       const v = views[name];
       const p = v.root.position;
       const h = v.root.rotation.y;

@@ -3,7 +3,7 @@ import { chromium } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
 
 const [name = 'shot', query = '', w = '1440', h = '900', wait = '2500'] = process.argv.slice(2);
-const base = process.env.POND_URL ?? 'http://localhost:5366/';
+const base = process.env.DUCKS_URL ?? 'http://localhost:5392/';
 mkdirSync('artifacts', { recursive: true });
 const browser = await chromium.launch({ args: ['--use-angle=metal', '--enable-gpu'] });
 const page = await browser.newPage({ viewport: { width: Number(w), height: Number(h) }, deviceScaleFactor: 1 });
@@ -12,13 +12,13 @@ page.on('console', (m) => logs.push(`[${m.type()}] ${m.text()}`));
 page.on('pageerror', (e) => logs.push(`[pageerror] ${e.message}`));
 await page.goto(base + (query ? `?${query}` : ''));
 await page.waitForTimeout(Number(wait));
-if (process.env.POND_EVAL) {
-  const out = await page.evaluate(process.env.POND_EVAL);
+if (process.env.DUCKS_EVAL) {
+  const out = await page.evaluate(process.env.DUCKS_EVAL);
   if (out !== undefined) console.log('eval:', JSON.stringify(out));
-  await page.waitForTimeout(Number(process.env.POND_EVAL_WAIT ?? 800));
+  await page.waitForTimeout(Number(process.env.DUCKS_EVAL_WAIT ?? 800));
 }
 await page.screenshot({ path: `artifacts/${name}.png` });
-const fps = await page.evaluate(() => window.__pond?.engine?.fps);
+const fps = await page.evaluate(() => window.__ducks?.engine?.fps);
 console.log(`artifacts/${name}.png fps=${fps?.toFixed?.(1)}`);
 for (const l of logs.slice(0, 20)) console.log(l);
 await browser.close();

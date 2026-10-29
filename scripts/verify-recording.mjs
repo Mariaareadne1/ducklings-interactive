@@ -8,12 +8,12 @@ import ffprobe from 'ffprobe-static';
 mkdirSync('artifacts', { recursive: true });
 const browser = await chromium.launch({ args: ['--use-angle=metal', '--enable-gpu'] });
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
-await page.goto('http://localhost:5366/?showcase');
+await page.goto('http://localhost:5392/?showcase');
 await page.evaluate(() => localStorage.clear());
-await page.waitForFunction(() => window.__pond && window.__pond.engine.pond.isFormed('koi1'), null, { timeout: 90000 });
+await page.waitForFunction(() => window.__ducks && window.__ducks.engine.pond.isFormed('koi1'), null, { timeout: 90000 });
 const out = await page.evaluate(async () => {
   const { recordCanvas } = await import('/src/capture/recorder.ts');
-  const m = window.__pond;
+  const m = window.__ducks;
   m.store.set({ uiHidden: true });
   setTimeout(() => m.app.act('leap', 'koi1'), 600);
   setTimeout(() => m.app.act('fly', 'duck1'), 1200);

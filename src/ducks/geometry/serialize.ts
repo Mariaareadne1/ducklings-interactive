@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { CreatureGeometries } from './shapes';
+import type { DuckGeometries } from './shapes';
 
 /** Geometry <-> plain transferable arrays, for crossing the worker boundary. */
 
@@ -10,7 +10,7 @@ export interface PackedGeometry {
 }
 export type PackedSet = Record<string, Record<string, PackedGeometry>>;
 
-export function serializeSet(set: Record<string, CreatureGeometries>): PackedSet {
+export function serializeSet(set: Record<string, DuckGeometries>): PackedSet {
   const out: PackedSet = {};
   for (const [kind, parts] of Object.entries(set)) {
     out[kind] = {};
@@ -36,8 +36,8 @@ export function transferables(p: PackedSet): ArrayBuffer[] {
   );
 }
 
-export function deserializeSet(p: PackedSet): Record<string, CreatureGeometries> {
-  const out: Record<string, CreatureGeometries> = {};
+export function deserializeSet(p: PackedSet): Record<string, DuckGeometries> {
+  const out: Record<string, DuckGeometries> = {};
   for (const [kind, parts] of Object.entries(p)) {
     out[kind] = {};
     for (const [name, packed] of Object.entries(parts)) {

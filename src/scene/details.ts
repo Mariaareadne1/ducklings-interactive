@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { edgeDistance, groundHeight, onJetty, pondSDF, JETTY } from './pondShape';
+import { FLOWERBED, benchSDF, edgeDistance, flowerbedSDF, groundHeight, onBridge, pathDistance, pondSDF } from './park';
 import { fbm2, seededRandom } from './noise';
 import { LIGHTING_GLSL, NOISE_GLSL, WORLD_UNIFORMS_GLSL } from './shaderChunks';
 import { GROUND_GLSL } from './terrain';
@@ -11,23 +11,16 @@ import type { WorldUniforms } from './world';
  * white daisies. Clustered by noise so they gather in drifts.
  */
 
-/** CPU twin of the footpath painted in terrain.ts (approximate, for keeping tufts off it). */
-function onPath(x: number, z: number): boolean {
-  const ax = JETTY.x, az = JETTY.z, bx = 9.4, bz = 11.0;
-  const t = Math.max(0, Math.min(1, ((x - ax) * (bx - ax) + (z - az) * (bz - az)) / ((bx - ax) ** 2 + (bz - az) ** 2)));
-  return Math.hypot(x - ax - (bx - ax) * t - 0.6 * Math.sin(t * Math.PI), z - az - (bz - az) * t) < 0.6;
-}
-
 function scatter(count: number, seed: number, accept: (x: number, z: number, r: number) => boolean) {
   const rand = seededRandom(seed);
   const out: [number, number][] = [];
   let attempts = 0;
   while (out.length < count && attempts < count * 30) {
     attempts++;
-    const x = (rand() * 2 - 1) * 13.6;
-    const z = (rand() * 2 - 1) * 10.1;
-    if (edgeDistance(x, z) < 0.9) continue;
-    if (pondSDF(x, z) < 0.6 || onJetty(x, z, 0.4) || onPath(x, z)) continue;
+    const x = (rand() * 2 - 1) * 9.7;
+    const z = (rand() * 2 - 1) * 7.2;
+    if (edgeDistance(x, z) < 0.7) continue;
+    if (pondSDF(x, z) < 0.45 || onBridge(x, z, 0.3) || pathDistance(x, z) < 0.6 || flowerbedSDF(x, z) < 0.2 || benchSDF(x, z) < 0.05) continue;
     if (!accept(x, z, rand())) continue;
     out.push([x, z]);
   }
@@ -86,7 +79,7 @@ varying float vTip;
 varying float vRand;
 void main() {
   float grassy;
-  vec3 ground = bankPaint(vWorld.xz, pondSDF(vWorld.xz), grassy);
+  vec3 ground = lawnPaint(vWorld.xz, pondSDF(vWorld.xz), grassy);
   // a darker stroke at the root, catching light at the tip
   vec3 base = ground * srgb(vec3(0.62, 0.74, 0.6));
   vec3 tip = mix(ground * 1.12, srgb(vec3(0.82, 0.86, 0.48)), 0.3 + 0.2 * vRand);
@@ -126,7 +119,7 @@ varying vec3 vWorld;
 varying float vPetal;
 varying float vKind;
 void main() {
-  vec4 wp = vec4(aOffset.xyz + position * aOffset.w + vec3(0.0, 0.07, 0.0), 1.0);
+  vec4 wp = vec4(aOffset.xyz + position * aOffset.w + vec3(0.0, 0.05, 0.0), 1.0);
   vWorld = wp.xyz;
   vPetal = aPetal;
   vKind = aKind.x;
@@ -143,8 +136,8 @@ varying vec3 vWorld;
 varying float vPetal;
 varying float vKind;
 void main() {
-  vec3 petal = vKind > 0.5 ? srgb(vec3(0.97, 0.95, 0.9)) : srgb(vec3(0.99, 0.86, 0.28));
-  vec3 eye = vKind > 0.5 ? srgb(vec3(0.96, 0.8, 0.25)) : srgb(vec3(0.93, 0.68, 0.18));
+  vec3 petal = vKind > 1.5 ? srgb(vec3(0.95, 0.70, 0.74)) : vKind > 0.5 ? srgb(vec3(0.98, 0.96, 0.91)) : srgb(vec3(0.98, 0.86, 0.45));
+  vec3 eye = vKind > 1.5 ? srgb(vec3(0.98, 0.88, 0.62)) : vKind > 0.5 ? srgb(vec3(0.96, 0.8, 0.25)) : srgb(vec3(0.93, 0.70, 0.25));
   vec3 albedo = mix(eye, petal, smoothstep(0.25, 0.6, vPetal));
   float sunVis = castLight(vWorld, 0.06);
   gl_FragColor = vec4(paintLight(albedo, vec3(0.0, 1.0, 0.0), sunVis, 1.0, 0.2), 1.0);
@@ -156,13 +149,13 @@ export function createDetails(world: WorldUniforms, density = 1): THREE.Group {
   group.name = 'details';
 
   // tufts: thicker along hedges and field edges, sparse in open grass
-  const tufts = scatter(Math.round(3000 * density), 31, (x, z, r) => r < 0.35 + 0.65 * Math.max(0, fbm2(x / 3.5, z / 3.5, 2) + 0.15));
+  const tufts = scatter(Math.round(1700 * density), 31, (x, z, r) => r < 0.35 + 0.65 * Math.max(0, fbm2(x / 3.5, z / 3.5, 2) + 0.15));
   const rand = seededRandom(5);
   const tOffset = new Float32Array(tufts.length * 4);
   const tSize = new Float32Array(tufts.length * 2);
   tufts.forEach(([x, z], i) => {
     tOffset.set([x, groundHeight(x, z), z, rand() * Math.PI * 2], i * 4);
-    tSize.set([0.16 + rand() * 0.16, rand()], i * 2);
+    tSize.set([0.1 + rand() * 0.1, rand()], i * 2);
   });
   const tg = tuftGeometry();
   tg.setAttribute('aOffset', new THREE.InstancedBufferAttribute(tOffset, 4));
@@ -176,12 +169,26 @@ export function createDetails(world: WorldUniforms, density = 1): THREE.Group {
   group.add(tuftMesh);
 
   // flowers: in drifts where a slow noise field is high
-  const flowers = scatter(Math.round(700 * density), 77, (x, z, r) => r < Math.max(0, fbm2(x / 4 + 9, z / 4 - 3, 2) - 0.12) * 4);
+  const lawn = scatter(Math.round(380 * density), 77, (x, z, r) => r < Math.max(0, fbm2(x / 3 + 9, z / 3 - 3, 2) - 0.15) * 4);
+  // the flowerbed: packed with butter-yellow, blush and a few white
+  const bed: [number, number][] = [];
+  const brand = seededRandom(13);
+  while (bed.length < Math.round(150 * density)) {
+    const a = brand() * Math.PI * 2;
+    const r = Math.sqrt(brand()) * 0.9;
+    const x = FLOWERBED.x + Math.cos(a) * r * FLOWERBED.rx;
+    const z = FLOWERBED.z + Math.sin(a) * r * FLOWERBED.rz;
+    if (flowerbedSDF(x, z) < -0.08) bed.push([x, z]);
+  }
+  const flowers = [...lawn, ...bed];
   const fOffset = new Float32Array(flowers.length * 4);
   const fKind = new Float32Array(flowers.length * 2);
   flowers.forEach(([x, z], i) => {
-    fOffset.set([x, groundHeight(x, z), z, 1.5 + rand() * 0.9], i * 4);
-    fKind.set([rand() < 0.22 ? 1 : 0, rand()], i * 2);
+    const inBed = i >= lawn.length;
+    const k = rand();
+    const kind = inBed ? (k < 0.45 ? 0 : k < 0.85 ? 2 : 1) : k < 0.3 ? 1 : k < 0.45 ? 2 : 0;
+    fOffset.set([x, groundHeight(x, z) + (inBed ? 0.06 + rand() * 0.08 : 0), z, inBed ? 1.6 + rand() * 0.9 : 0.9 + rand() * 0.6], i * 4);
+    fKind.set([kind, rand()], i * 2);
   });
   const fg = flowerGeometry();
   fg.setAttribute('aOffset', new THREE.InstancedBufferAttribute(fOffset, 4));

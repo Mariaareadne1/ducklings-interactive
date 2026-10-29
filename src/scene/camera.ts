@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { TILE } from './pondShape';
+import { TILE } from './park';
 
 /**
  * An elevated three-quarter view of the tile, like the aerial illustrations:
@@ -13,7 +13,7 @@ import { TILE } from './pondShape';
 const PITCH = THREE.MathUtils.degToRad(-46); // looking down
 const PITCH_PORTRAIT = THREE.MathUtils.degToRad(-56); // steeper on tall screens, so the tile's length isn't foreshortened away
 const FOV = 38;
-const NUDGE = 1.1; // aim a little nearer than the centre, so the tile sits high above the toolbar
+const NUDGE = 0.8; // aim a little nearer than the centre, so the tile sits high above the toolbar
 const MARGIN_LANDSCAPE = 0.86; // fraction of NDC the tile may fill
 const MARGIN_PORTRAIT_Y = 0.82;
 

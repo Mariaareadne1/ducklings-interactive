@@ -10,11 +10,11 @@ mkdirSync('artifacts', { recursive: true });
 const browser = await chromium.launch({ args: ['--use-angle=metal', '--enable-gpu'] });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 page.on('pageerror', (e) => console.log('[pageerror]', e.message));
-await page.goto(`http://localhost:5366/?${process.env.POND_QUERY ?? 'showcase'}`);
+await page.goto(`http://localhost:5392/?${process.env.POND_QUERY ?? 'showcase'}`);
 await ready(page);
 await page.waitForTimeout(1500);
 await page.evaluate(({ id, action }) => {
-  const p = window.__pond;
+  const p = window.__ducks;
   p.engine.stop();
   for (let i = 0; i < 30; i++) p.engine.tick(1 / 60);
   if (action.startsWith('come:')) {
@@ -30,7 +30,7 @@ await page.evaluate(({ id, action }) => {
 const files = [];
 for (let f = 0; f < Number(frames); f++) {
   const pos = await page.evaluate(({ id, n }) => {
-    const p = window.__pond;
+    const p = window.__ducks;
     for (let i = 0; i < n; i++) p.engine.tick(1 / 60);
     const v = p.engine.pond.get(id)?.view;
     if (!v) return null;

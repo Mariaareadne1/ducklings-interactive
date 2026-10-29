@@ -1,12 +1,12 @@
 import { deserializeSet, type PackedSet } from './serialize';
-import type { CreatureGeometries } from './shapes';
+import type { DuckGeometries } from './shapes';
 
 /**
  * Every creature shape is built once, off the main thread, and shared by
  * every creature of that kind (variety comes from paint seeds, size and pose).
  */
 
-export type ShapeSet = Record<string, CreatureGeometries>;
+export type ShapeSet = Record<string, DuckGeometries>;
 
 let promise: Promise<ShapeSet> | null = null;
 let ready: ShapeSet | null = null;
@@ -20,7 +20,7 @@ export function loadShapes(): Promise<ShapeSet> {
       if (event.data.packed) {
         ready = deserializeSet(event.data.packed);
         resolve(ready);
-      } else reject(new Error(event.data.error ?? 'Creature shapes failed to build'));
+      } else reject(new Error(event.data.error ?? 'Duck shapes failed to build'));
     };
     worker.onerror = (event) => {
       worker.terminate();
