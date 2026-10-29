@@ -9,6 +9,7 @@ import { createCamera, frameCamera } from '../scene/camera';
 import { PostPass } from './post';
 import { SunShadows } from './shadows';
 import { ParkLife } from '../scene/life';
+import { Flock } from '../ducks/Flock';
 
 export interface EngineOptions {
   canvas: HTMLCanvasElement;
@@ -26,6 +27,7 @@ export class Engine {
   readonly shadows: SunShadows;
   readonly ripples: Ripples;
   readonly life: ParkLife;
+  readonly flock: Flock;
   private readonly clock = new THREE.Clock();
   private readonly frameListeners = new Set<FrameListener>();
   private readonly beforeRender = new Set<FrameListener>();
@@ -86,7 +88,12 @@ export class Engine {
     this.ripples = new Ripples(this.world);
     this.life = new ParkLife(this.world, this.ripples, quality === 'high' ? 1 : 0.6);
     this.scene.add(this.life.group);
-    this.onFrame((dt) => this.life.update(dt));
+    this.flock = new Flock(this.world, this.ripples, this.life, this.reducedMotion);
+    this.scene.add(this.flock.group);
+    this.onFrame((dt) => {
+      this.flock.update(dt);
+      this.life.update(dt);
+    });
     this.shadows = new SunShadows(this.world, quality === 'high' ? 2048 : 1024);
   }
 
@@ -229,6 +236,7 @@ export class Engine {
       if (Array.isArray(mat)) mat.forEach((m) => m.dispose());
       else mat?.dispose();
     });
+    this.flock.dispose();
     this.life.dispose();
     this.shadows.dispose();
     this.post.dispose();

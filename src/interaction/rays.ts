@@ -1,10 +1,9 @@
 import * as THREE from 'three';
-import { edgeDistance, groundHeight, pondSDF, WATER_Y } from '../scene/pondShape';
+import { bridgeLocal, deckHeight, edgeDistance, groundHeight, onBridge, pondSDF, WATER_Y } from '../scene/park';
 
 /**
- * Exact screen-to-world placement against analytic surfaces: the water
- * plane for things that float or swim, the bank's height function for
- * things that sit on land.
+ * Exact screen-to-world placement against analytic surfaces: the bridge
+ * deck, the water plane and the lawn's height function.
  */
 
 /** March the view ray until it dips under the ground, then bisect. Null if it never does. */
@@ -37,11 +36,27 @@ export function raycastWater(origin: THREE.Vector3, dir: THREE.Vector3, target =
   return t > 0 ? target.copy(origin).addScaledVector(dir, t) : null;
 }
 
-export type Surface = 'water' | 'bank' | 'paper';
+export type Surface = 'water' | 'land' | 'paper';
 
 export interface SurfaceHit {
   surface: Surface;
   point: THREE.Vector3;
+  /** The hit is on the bridge deck. */
+  deck: boolean;
+}
+
+/** Where the ray meets the bridge deck, if it does. */
+export function raycastDeck(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 | null {
+  if (Math.abs(dir.y) < 1e-6) return null;
+  let y = 0.4;
+  let p = new THREE.Vector3();
+  for (let i = 0; i < 4; i++) {
+    const t = (y - origin.y) / dir.y;
+    if (t <= 0) return null;
+    p = origin.clone().addScaledVector(dir, t);
+    y = deckHeight(bridgeLocal(p.x, p.z)[0]);
+  }
+  return onBridge(p.x, p.z, -0.05) ? p : null;
 }
 
 const ndc = new THREE.Vector2();
@@ -56,11 +71,13 @@ export function rayFromClient(camera: THREE.PerspectiveCamera, rect: { left: num
 /** What is under a screen point: open water, the bank, or paper outside the tile. */
 export function surfaceAt(camera: THREE.PerspectiveCamera, rect: { left: number; top: number; width: number; height: number }, clientX: number, clientY: number): SurfaceHit {
   const r = rayFromClient(camera, rect, clientX, clientY);
+  const d = raycastDeck(r.origin, r.direction);
+  if (d) return { surface: 'land', point: d, deck: true };
   const w = raycastWater(r.origin, r.direction);
-  if (w && pondSDF(w.x, w.z) < 0 && edgeDistance(w.x, w.z) > 0.2) return { surface: 'water', point: w };
+  if (w && pondSDF(w.x, w.z) < 0 && edgeDistance(w.x, w.z) > 0.2) return { surface: 'water', point: w, deck: false };
   const g = raycastGround(r.origin, r.direction);
-  if (g && edgeDistance(g.x, g.z) > 0.2 && pondSDF(g.x, g.z) >= 0) return { surface: 'bank', point: g };
-  return { surface: 'paper', point: w ?? g ?? new THREE.Vector3() };
+  if (g && edgeDistance(g.x, g.z) > 0.2 && pondSDF(g.x, g.z) >= 0) return { surface: 'land', point: g, deck: false };
+  return { surface: 'paper', point: w ?? g ?? new THREE.Vector3(), deck: false };
 }
 
 export function screenToWater(camera: THREE.PerspectiveCamera, rect: DOMRect | { left: number; top: number; width: number; height: number }, clientX: number, clientY: number): THREE.Vector3 | null {

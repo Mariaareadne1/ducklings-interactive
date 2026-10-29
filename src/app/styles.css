@@ -357,3 +357,30 @@ kbd { font: inherit; font-size: 11px; color: var(--ink-soft); }
   .instead { animation: fade-out 0.2s 2.8s forwards; }
   .ink-ghost { animation-duration: 0.4s; }
 }
+
+/* --- DUCKLINGS --------------------------------------------------------------- */
+.stage[data-cursor='lead'] canvas { cursor: pointer; }
+.ink-mark { animation: ink-mark 1.2s var(--ease) forwards; }
+@keyframes ink-mark {
+  0% { opacity: 0; transform-box: fill-box; transform-origin: center; transform: scale(0.4); }
+  20% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.35); }
+}
+.duck-name { display: flex; align-items: center; gap: 2px; }
+.duck-name input {
+  width: 118px;
+  height: 30px;
+  padding: 0 9px;
+  border: 1px solid var(--ink-faint);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.65);
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  outline: none;
+}
+.duck-name input:focus { border-color: var(--select); }
+.duck-name input::placeholder { color: rgba(31, 42, 34, 0.4); }
+.duck-name .icon-btn { font-size: 15px; }
+.creature-bar .who { padding: 0 8px 0 6px; font-family: var(--serif); font-style: italic; font-size: 13.5px; color: var(--ink-soft); }
+.tool-hint { font-size: 12px; color: var(--ink-soft); padding-left: 4px; }

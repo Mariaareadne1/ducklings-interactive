@@ -90,20 +90,20 @@ export function ducklingShapes(): DuckGeometries {
     seed: 7,
     min: [-0.22, -0.08, -0.16],
     max: [0.16, 0.19, 0.16],
-    inset: 0.012,
-    layers: [{ count: 70, rMin: 0.02, rMax: 0.032 }, { count: 130, rMin: 0.011, rMax: 0.018 }],
-    blend: 0.014,
-    curl: 0.0012,
+    inset: 0.026,
+    layers: [{ count: 46, rMin: 0.028, rMax: 0.034 }, { count: 90, rMin: 0.016, rMax: 0.021 }],
+    blend: 0.03,
+    curl: 0.0009,
   });
   const headBase: SDF = (x, y, z) => smin(sdEllipsoid(x, y, z, 0, 0, 0, 0.086, 0.082, 0.083), sdEllipsoid(x, y, z, 0.02, -0.03, 0, 0.06, 0.05, 0.072), 0.03);
   const head = woolField(headBase, {
     seed: 11,
     min: [-0.12, -0.11, -0.12],
     max: [0.12, 0.11, 0.12],
-    inset: 0.008,
-    layers: [{ count: 50, rMin: 0.016, rMax: 0.024 }, { count: 80, rMin: 0.009, rMax: 0.014 }],
-    blend: 0.011,
-    curl: 0.001,
+    inset: 0.019,
+    layers: [{ count: 34, rMin: 0.02, rMax: 0.025 }, { count: 60, rMin: 0.012, rMax: 0.016 }],
+    blend: 0.022,
+    curl: 0.0007,
   });
   const bill: SDF = (x, y, z) => smin(sdEllipsoid(x, y, z, 0.045, -0.004, 0, 0.04, 0.011, 0.027), sdEllipsoid(x, y, z, 0.008, 0.002, 0, 0.022, 0.016, 0.026), 0.015);
   // a cowlick: three little curls of fluff standing up and leaning back
@@ -120,7 +120,7 @@ export function ducklingShapes(): DuckGeometries {
     bill: mesh(bill, [-0.03, -0.03, -0.04], [0.1, 0.03, 0.04], 0.003),
     tuft: mesh(tuft, [-0.04, -0.02, -0.03], [0.03, 0.06, 0.03], 0.0025),
     wing: mesh(nub, [-0.11, -0.025, -0.045], [0.04, 0.025, 0.045], 0.004),
-    eye: withAO(new THREE.SphereGeometry(0.0135, 10, 8)),
+    eye: withAO(new THREE.SphereGeometry(0.0165, 12, 8)),
     foot: webbedFoot(0.048),
     leg: withAO(new THREE.CylinderGeometry(0.008, 0.009, 0.05, 6)),
   };

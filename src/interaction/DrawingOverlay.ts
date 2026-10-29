@@ -1,9 +1,10 @@
 import type { Pt } from './stroke';
 
 /**
- * The pen line, drawn in an SVG over the canvas: thin, off-white, slightly
+ * The pen line, drawn in an SVG over the canvas: thin, cream, slightly
  * organic. Closed shapes get a faint fill. After release the line lingers as
- * a ghost while the sheep forms, then fades; rejected strokes shiver away.
+ * a ghost while the duckling is painted in, then fades; rejected strokes
+ * shiver away. A tap in Lead leaves a small ring that fades.
  */
 
 const NS = 'http://www.w3.org/2000/svg';
@@ -65,6 +66,18 @@ export class DrawingOverlay {
     };
     line.addEventListener('animationend', done, { once: true });
     window.setTimeout(done, 2500); // in case animations are disabled
+  }
+
+  /** A small pen ring where mum was sent, drawn as a path so recordings keep it. */
+  mark(x: number, y: number): void {
+    const ring = document.createElementNS(NS, 'path');
+    const r = 9;
+    ring.setAttribute('d', `M${(x - r).toFixed(1)},${y.toFixed(1)} a${r},${r * 0.55} 0 1,0 ${2 * r},0 a${r},${r * 0.55} 0 1,0 ${-2 * r},0`);
+    ring.classList.add('ink-line', 'ink-mark');
+    this.svg.append(ring);
+    const done = () => ring.remove();
+    ring.addEventListener('animationend', done, { once: true });
+    window.setTimeout(done, 1500);
   }
 
   cancelLive(): void {
